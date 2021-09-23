@@ -5,19 +5,29 @@ import java.util.*;
 public class Main {
 
     public static void main(String[] args) {
+        //Declare new hashmap
         HashMap<String, Integer> map = new HashMap<>();
+
+        //New POJO of type Challenge with the map passed in the constructor
         Challenge c = new Challenge(map);
 
-        c.requestHandled("Fairly Popular IP Address");
-        c.requestHandled("Fairly Popular IP Address");
-        c.requestHandled("Fairly Popular IP Address");
+        //Handle the same IP 3 times
+        for (int i = 0; i < 3; i ++) {
+            c.requestHandled("Fairly Popular IP Address");
+            c.requestHandled("Fairly Popular IP Address");
+            c.requestHandled("Fairly Popular IP Address");
+        }
 
-        c.requestHandled("The Most Popular IP Address");
-        c.requestHandled("The Most Popular IP Address");
-        c.requestHandled("The Most Popular IP Address");
-        c.requestHandled("The Most Popular IP Address");
+        //Handle another IP 4 times
+        for (int i = 0; i < 4; i++) {
+            c.requestHandled("The Most Popular IP Address");
+            c.requestHandled("The Most Popular IP Address");
+            c.requestHandled("The Most Popular IP Address");
+            c.requestHandled("The Most Popular IP Address");
+        }
 
-        for (int i = 0; i < 200; i ++) {
+        //Handle 1000 random UUIDs (in the real world this would be IP addresses)
+        for (int i = 0; i < 1000; i ++) {
             long startTime = System.nanoTime();
             c.requestHandled(UUID.randomUUID().toString());
             long endTime = System.nanoTime();
@@ -25,9 +35,7 @@ public class Main {
             System.out.println("Duration: " + duration + " ms");
         }
 
-        c.requestHandled("The Most Popular IP Address");
-        c.requestHandled("The Most Popular IP Address");
-
+        //Get top 100, with the most popular IP addresses at the top
         System.out.println(c.getTop100().toString());
 
     }
@@ -66,7 +74,7 @@ class Challenge {
             ipAddresses.replace(address, countOptional.get(), countOptional.get() + 1);
         } else {
             //If countOptional is empty, put a new key-value pair in ipAddresses
-            ipAddresses.put(address, 0);
+            ipAddresses.put(address, 1);
         }
         //Call checkTop100 to keep track of 100 most common IP addresses
         //We call this method after count has been incremented
@@ -123,7 +131,7 @@ class Challenge {
 
         //If top 100 has 100 addresses...
 
-        //If address is already in top 100, just sort the list since its count was incremented by one
+        //If address is already in top 100, just sort the list since the address count was incremented by one
         if (top100.contains(address)) {
             sortTop100();
         } else {
