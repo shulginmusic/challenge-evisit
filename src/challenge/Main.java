@@ -69,6 +69,7 @@ class Challenge {
             ipAddresses.put(address, 0);
         }
         //Call checkTop100 to keep track of 100 most common IP addresses
+        //We call this method after count has been incremented
         checkTop100(address);
         System.out.println("Request handled for IP address: " + address);
     }
@@ -100,36 +101,36 @@ class Challenge {
      * Helper method to keep track and update 100 most common IP addresses
      */
     private void checkTop100(String address) {
-        String currentLastAddress;
-        int currentLowestCount;
 
-        //If empty
+        //If top 100 is empty
         if (top100.isEmpty()) {
+            //Just add the address to top100
             top100.add(address);
             return;
         }
 
-        //If less than 100
+        //If top 100 is less than 100 in size
         if (top100.size() < 100) {
+            //And doesn't yet contain this address
             if (!top100.contains(address)) {
+                //Add to top 100
                 top100.add(address);
             }
+            //Sort the list
             sortTop100();
             return;
         }
 
         //If top 100 has 100 addresses...
-//        //Sort the list by comparing the counts
-//        sortTop100();
-//
+
         //If address is already in top 100, just sort the list since its count was incremented by one
         if (top100.contains(address)) {
             sortTop100();
         } else {
             //if address is not in top 100
             //get the last address and its count
-            currentLastAddress = top100.get(99);
-            currentLowestCount = ipAddresses.get(currentLastAddress);
+            String currentLastAddress = top100.get(99);
+            int currentLowestCount = ipAddresses.get(currentLastAddress);
 
             //Compare against the address's count
             int addressCount = ipAddresses.get(address);
