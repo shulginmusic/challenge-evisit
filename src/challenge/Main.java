@@ -8,14 +8,14 @@ public class Main {
         HashMap<String, Integer> map = new HashMap<>();
         Challenge c = new Challenge(map);
 
-        c.requestHandled("ip2");
-        c.requestHandled("ip2");
-        c.requestHandled("ip2");
+        c.requestHandled("Fairly Popular IP Address");
+        c.requestHandled("Fairly Popular IP Address");
+        c.requestHandled("Fairly Popular IP Address");
 
-        c.requestHandled("ip3");
-        c.requestHandled("ip3");
-        c.requestHandled("ip3");
-        c.requestHandled("ip3");
+        c.requestHandled("The Most Popular IP Address");
+        c.requestHandled("The Most Popular IP Address");
+        c.requestHandled("The Most Popular IP Address");
+        c.requestHandled("The Most Popular IP Address");
 
         for (int i = 0; i < 200; i ++) {
             long startTime = System.nanoTime();
@@ -25,12 +25,10 @@ public class Main {
             System.out.println("Duration: " + duration + " ms");
         }
 
-        c.requestHandled("ip3");
-        c.requestHandled("ip3");
+        c.requestHandled("The Most Popular IP Address");
+        c.requestHandled("The Most Popular IP Address");
 
         System.out.println(c.getTop100().toString());
-
-
 
     }
 }
@@ -93,8 +91,8 @@ class Challenge {
      * Called at the start of each day to forget about all IP addresses and tallies.
      */
     public void clear() {
-        this.ipAddresses.clear();
-        this.top100.clear();
+        ipAddresses.clear();
+        top100.clear();
     }
 
     /**
@@ -102,35 +100,52 @@ class Challenge {
      * Helper method to keep track and update 100 most common IP addresses
      */
     private void checkTop100(String address) {
-        //Check if top100 is empty or size < 100
-        if (top100.isEmpty() || top100.size() < 100) {
-            //Just add the address to the list
+        String currentLastAddress;
+        int currentLowestCount;
+
+        //If empty
+        if (top100.isEmpty()) {
             top100.add(address);
             return;
         }
 
-        //If top 100 has 100 addresses...
-        //Sort the list by comparing the counts
-        sortTop100();
-
-        //get the last address and its count
-        String currentLastAddress = top100.get(99);
-        int currentLowestCount = ipAddresses.get(currentLastAddress);
-
-        //Compare against the address's count
-        int addressCount = ipAddresses.get(address);
-        if (addressCount > currentLowestCount) {
-            //If the address's count is larger than the current last one's, replace
-            //In case of a tie the old address stays (but only if it's a tie with the lowest count)
-            top100.remove(currentLastAddress);
-            top100.add(address);
-            //Sort again
+        //If less than 100
+        if (top100.size() < 100) {
+            if (!top100.contains(address)) {
+                top100.add(address);
+            }
             sortTop100();
+            return;
+        }
+
+        //If top 100 has 100 addresses...
+//        //Sort the list by comparing the counts
+//        sortTop100();
+//
+        //If address is already in top 100, just sort the list since its count was incremented by one
+        if (top100.contains(address)) {
+            sortTop100();
+        } else {
+            //if address is not in top 100
+            //get the last address and its count
+            currentLastAddress = top100.get(99);
+            currentLowestCount = ipAddresses.get(currentLastAddress);
+
+            //Compare against the address's count
+            int addressCount = ipAddresses.get(address);
+            if (addressCount > currentLowestCount) {
+                //If the address's count is larger than the current last one's, replace
+                //In case of a tie the old address stays (but only if it's a tie with the lowest count)
+                top100.remove(currentLastAddress);
+                top100.add(address);
+                //Sort again
+                sortTop100();
+            }
         }
     }
 
     /**
-     * Helper to sort top100 in a descending order by the corresponding count (value)
+     * Helper method to sort top100 in a descending order by the corresponding count (value)
      */
     private void sortTop100() {
         //Sort the list by comparing the address's counts
