@@ -2,7 +2,10 @@ package challenge;
 
 import java.util.*;
 
-public class Main {
+/**
+ * Controller class to try out the methods in the classes below
+ */
+public class MainController {
 
     public static void main(String[] args) {
 
@@ -38,6 +41,9 @@ public class Main {
     }
 }
 
+/**
+ * Class with the three needed methods: requestHandled(), getTop100() and clear()
+ */
 class Challenge {
     //This hashmap will store all of the ipAddresses and the number of times they were used to call requestHandled()
     //This is a key-value data structure, where the key is the IP address as a String, and the count is an Integer
@@ -80,6 +86,7 @@ class Challenge {
         System.out.println("Request handled for IP address: " + address);
     }
 
+    //Complexity: O(1)
     public List<String> getTop100() {
         return top100List;
     }
