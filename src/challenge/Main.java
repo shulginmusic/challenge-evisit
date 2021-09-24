@@ -12,7 +12,6 @@ public class Main {
         //Handle the same IP 3 times
         for (int i = 0; i < 3; i ++) {
             c.requestHandled("Fairly Popular IP Address");
-
         }
 
         //Handle another IP 4 times
@@ -21,16 +20,19 @@ public class Main {
         }
 
         //Handle 1000 random UUIDs (in the real world this would be IP addresses)
-        for (int i = 0; i < 100; i ++) {
+        for (int i = 0; i < 1000; i ++) {
             long startTime = System.nanoTime();
             c.requestHandled(UUID.randomUUID().toString());
             long endTime = System.nanoTime();
             long duration = (endTime - startTime) / 1000000;
             System.out.println("Duration: " + duration + " ms");
+//            System.out.println("Iteration # " + i);
         }
 
         //Get top 100, with the most popular IP addresses at the top
-        System.out.println(c.top100.toString());
+        System.out.println(c.getTop100().toString());
+
+        c.clear();
     }
 }
 
@@ -40,10 +42,7 @@ class Challenge {
     HashMap<String, Integer> ipAddresses = new HashMap();
 
     //A list of 100 most common IP addresses
-    ArrayList<String> top100 = new ArrayList();
-
-    Top100Handler top100Handler = new Top100Handler(this);
-
+    List<String> top100List = Collections.synchronizedList(new ArrayList<>());
 
     /**
      * requestHandled(String address)
@@ -55,6 +54,7 @@ class Challenge {
      * @param address the IP address of the request
      */
 
+    //Complexity: O(1 + n*Log n)
     public void requestHandled(String address) {
         //Declare an Optional for the value associated with the address provided if it exists in ipAddresses already,
         // or else store an empty optional
@@ -74,16 +74,19 @@ class Challenge {
         //This handler is happening in a different thread of the application
         //To lighten up the load of the main thread
         //Declare a threaded handler of top 100
-        top100Handler.setAddress(address);
-        top100Handler.run();
+        Top100Handler top100Handler = new Top100Handler(this, address);
 
         System.out.println("Request handled for IP address: " + address);
+    }
+
+    public List<String> getTop100() {
+        return top100List;
     }
 
     //Clear method
     public void clear() {
         ipAddresses.clear();
-        top100.clear();
+        top100List.clear();
     }
 }
 
@@ -93,13 +96,11 @@ class Top100Handler implements Runnable {
     String address;
     Thread thread;
 
-    public Top100Handler(Challenge c) {
+    public Top100Handler(Challenge c, String address) {
         this.c = c;
-        this.thread = new Thread(this);
-    }
-
-    public void setAddress(String address) {
         this.address = address;
+        this.thread = new Thread(this);
+        thread.start();
     }
 
     @Override
@@ -112,21 +113,22 @@ class Top100Handler implements Runnable {
      * Helper method to keep track and update 100 most common IP addresses
      */
 
+    //Complexity: O(n*Log n)
     private synchronized void checkTop100() {
 
         //If top 100 is empty
-        if (c.top100.isEmpty()) {
+        if (c.top100List.isEmpty()) {
             //Just add the address to top100
-            c.top100.add(address);
+            c.top100List.add(address);
             return;
         }
 
         //If top 100 is less than 100 in size
-        if (c.top100.size() < 100) {
+        if (c.top100List.size() < 100) {
             //And doesn't yet contain this address
-            if (!c.top100.contains(address)) {
+            if (!c.top100List.contains(address)) {
                 //Add to top 100
-                c.top100.add(address);
+                c.top100List.add(address);
             }
             //Sort the list
             sortTop100();
@@ -135,13 +137,13 @@ class Top100Handler implements Runnable {
 
         //If top 100 has 100 addresses...
 
-        //If the address is already in top 100, just sort the list since the address count was incremented by one
-        if (c.top100.contains(address)) {
+        //If address is already in top 100, just sort the list since the address count was incremented by one
+        if (c.top100List.contains(address)) {
             sortTop100();
         } else {
             //if address is not in top 100
             //get the last address and its count
-            String currentLastAddress = c.top100.get(99);
+            String currentLastAddress = c.top100List.get(99);
             int currentLowestCount = c.ipAddresses.get(currentLastAddress);
 
             //Compare against the address's count
@@ -149,8 +151,8 @@ class Top100Handler implements Runnable {
             if (addressCount > currentLowestCount) {
                 //If the address's count is larger than the current last one's, replace
                 //In case of a tie the old address stays (but only if it's a tie with the lowest count)
-                c.top100.remove(currentLastAddress);
-                c.top100.add(address);
+                c.top100List.remove(currentLastAddress);
+                c.top100List.add(address);
                 //Sort again
                 sortTop100();
             }
@@ -162,31 +164,13 @@ class Top100Handler implements Runnable {
      */
     private void sortTop100() {
         //Sort the list by comparing the address's counts
-        c.top100.sort(new Comparator<String>() {
+        c.top100List.sort(new Comparator<String>() {
             @Override
             public int compare(String o1, String o2) {
-                return Integer.compare(c.ipAddresses.get(o1), c.ipAddresses.get(o2));
+                return Integer.compare(c.ipAddresses.get(o2), c.ipAddresses.get(o1));
             }
         });
-        //Reverse the list so it's in descending order
-        Collections.reverse(c.top100);
     }
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
