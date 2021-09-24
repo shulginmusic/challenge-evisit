@@ -1,4 +1,4 @@
-# challenge-evisit
+# Evisit Coding Challenge
 
 # What would you do differently if you had more time?
 
