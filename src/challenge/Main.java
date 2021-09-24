@@ -5,29 +5,23 @@ import java.util.*;
 public class Main {
 
     public static void main(String[] args) {
-        //Declare new hashmap
-        HashMap<String, Integer> map = new HashMap<>();
 
-        //New POJO of type Challenge with the map passed in the constructor
-        Challenge c = new Challenge(map);
+        //New POJO of type Challenge with the ipAddressesMap passed in the constructor
+        Challenge c = new Challenge();
 
         //Handle the same IP 3 times
         for (int i = 0; i < 3; i ++) {
             c.requestHandled("Fairly Popular IP Address");
-            c.requestHandled("Fairly Popular IP Address");
-            c.requestHandled("Fairly Popular IP Address");
+
         }
 
         //Handle another IP 4 times
         for (int i = 0; i < 4; i++) {
             c.requestHandled("The Most Popular IP Address");
-            c.requestHandled("The Most Popular IP Address");
-            c.requestHandled("The Most Popular IP Address");
-            c.requestHandled("The Most Popular IP Address");
         }
 
         //Handle 1000 random UUIDs (in the real world this would be IP addresses)
-        for (int i = 0; i < 1000; i ++) {
+        for (int i = 0; i < 100; i ++) {
             long startTime = System.nanoTime();
             c.requestHandled(UUID.randomUUID().toString());
             long endTime = System.nanoTime();
@@ -36,26 +30,24 @@ public class Main {
         }
 
         //Get top 100, with the most popular IP addresses at the top
-        System.out.println(c.getTop100().toString());
-
+        System.out.println(c.top100.toString());
     }
 }
 
 class Challenge {
     //This hashmap will store all of the ipAddresses and the number of times they were used to call requestHandled()
     //This is a key-value data structure, where the key is the IP address as a String, and the count is an Integer
-    HashMap<String, Integer> ipAddresses = new HashMap<>();
+    HashMap<String, Integer> ipAddresses = new HashMap();
 
-//    //Top 100 TODO: describe
-    ArrayList<String> top100 = new ArrayList<>(100);
+    //A list of 100 most common IP addresses
+    ArrayList<String> top100 = new ArrayList();
 
-    public Challenge(HashMap<String, Integer> ipAddresses) {
-        this.ipAddresses = ipAddresses;
-    }
+    Top100Handler top100Handler = new Top100Handler(this);
+
 
     /**
      * requestHandled(String address)
-     * This function accepts a string containing an IP address like “145.87.2.109”.
+     * This function accepts a string containing an IP address like "145.87.2.109".
      * This function will be called by the web service every time it handles a request.
      * The calling code is outside the scope of this project.
      * Since it is being called very often, this function needs to have a fast runtime.
@@ -76,53 +68,65 @@ class Challenge {
             //If countOptional is empty, put a new key-value pair in ipAddresses
             ipAddresses.put(address, 1);
         }
+
         //Call checkTop100 to keep track of 100 most common IP addresses
         //We call this method after count has been incremented
-        checkTop100(address);
+        //This handler is happening in a different thread of the application
+        //To lighten up the load of the main thread
+        //Declare a threaded handler of top 100
+        top100Handler.setAddress(address);
+        top100Handler.run();
+
         System.out.println("Request handled for IP address: " + address);
     }
 
-    //call checkTopOneHundred()
-
-    /**
-     * top100()
-     * This function should return the top 100 IP addresses by request count, with the highest traffic IP address first.
-     * This function also needs to be fast. Imagine it needs to provide a quick response (< 300ms)
-     * to display on a dashboard, even with 20 millions IP addresses. This is a very important requirement.
-     * Don’t forget to satisfy this requirement.
-     */
-    public List<String> getTop100() {
-        return top100;
-    }
-
-    /**
-     * clear()
-     * Called at the start of each day to forget about all IP addresses and tallies.
-     */
+    //Clear method
     public void clear() {
         ipAddresses.clear();
         top100.clear();
+    }
+}
+
+class Top100Handler implements Runnable {
+
+    Challenge c;
+    String address;
+    Thread thread;
+
+    public Top100Handler(Challenge c) {
+        this.c = c;
+        this.thread = new Thread(this);
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    @Override
+    public void run() {
+        checkTop100();
     }
 
     /**
      * checkTopOneHundred()
      * Helper method to keep track and update 100 most common IP addresses
      */
-    private void checkTop100(String address) {
+
+    private synchronized void checkTop100() {
 
         //If top 100 is empty
-        if (top100.isEmpty()) {
+        if (c.top100.isEmpty()) {
             //Just add the address to top100
-            top100.add(address);
+            c.top100.add(address);
             return;
         }
 
         //If top 100 is less than 100 in size
-        if (top100.size() < 100) {
+        if (c.top100.size() < 100) {
             //And doesn't yet contain this address
-            if (!top100.contains(address)) {
+            if (!c.top100.contains(address)) {
                 //Add to top 100
-                top100.add(address);
+                c.top100.add(address);
             }
             //Sort the list
             sortTop100();
@@ -131,22 +135,22 @@ class Challenge {
 
         //If top 100 has 100 addresses...
 
-        //If address is already in top 100, just sort the list since the address count was incremented by one
-        if (top100.contains(address)) {
+        //If the address is already in top 100, just sort the list since the address count was incremented by one
+        if (c.top100.contains(address)) {
             sortTop100();
         } else {
             //if address is not in top 100
             //get the last address and its count
-            String currentLastAddress = top100.get(99);
-            int currentLowestCount = ipAddresses.get(currentLastAddress);
+            String currentLastAddress = c.top100.get(99);
+            int currentLowestCount = c.ipAddresses.get(currentLastAddress);
 
             //Compare against the address's count
-            int addressCount = ipAddresses.get(address);
+            int addressCount = c.ipAddresses.get(address);
             if (addressCount > currentLowestCount) {
                 //If the address's count is larger than the current last one's, replace
                 //In case of a tie the old address stays (but only if it's a tie with the lowest count)
-                top100.remove(currentLastAddress);
-                top100.add(address);
+                c.top100.remove(currentLastAddress);
+                c.top100.add(address);
                 //Sort again
                 sortTop100();
             }
@@ -158,20 +162,18 @@ class Challenge {
      */
     private void sortTop100() {
         //Sort the list by comparing the address's counts
-        top100.sort(new Comparator<String>() {
+        c.top100.sort(new Comparator<String>() {
             @Override
             public int compare(String o1, String o2) {
-                return Integer.compare(ipAddresses.get(o1), ipAddresses.get(o2));
+                return Integer.compare(c.ipAddresses.get(o1), c.ipAddresses.get(o2));
             }
         });
         //Reverse the list so it's in descending order
-        Collections.reverse(top100);
+        Collections.reverse(c.top100);
     }
 
+
 }
-
-
-
 
 
 
