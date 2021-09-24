@@ -15,7 +15,7 @@ I would implement my own sorting algorithm and map data structure. I would retur
 
 # How does your code work?
 
-- My solution is written in Java 11 and utilizes standard java libraries.
+- My solution is written in Java 11 and utilizes standard Java libraries.
 - I store the IP addresses and their counts in a hashmap, incrementing the counts as necessary.
 - When requestHandled(String address) is called, I either add the address to the hashmap or increment its count if it's already stored.
 - In the requestHandled() I start a new thread that manipulates a synchronized list of 100 most popular IP addresses. It populates this list and sorts it accordingly, as well as mutates the list in case an address is higher than the current lowest-count address in the list.
