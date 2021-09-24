@@ -69,8 +69,7 @@ class Challenge {
             ipAddresses.put(address, 1);
         }
 
-        //Call checkTop100 to keep track of 100 most common IP addresses
-        //We call this method after count has been incremented
+        //We declare this handler after count was incremented
         //This handler is happening in a different thread of the application
         //To lighten up the load of the main thread
         //Declare a threaded handler of top 100
