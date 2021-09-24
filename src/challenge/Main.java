@@ -21,10 +21,12 @@ public class Main {
 
         //Handle 1000 random UUIDs (in the real world this would be IP addresses)
         for (int i = 0; i < 1000; i ++) {
+            //Calculate runtime of function
             long startTime = System.nanoTime();
             c.requestHandled(UUID.randomUUID().toString());
             long endTime = System.nanoTime();
             long duration = (endTime - startTime) / 1000000;
+            //Print out runtime
             System.out.println("Duration: " + duration + " ms");
 //            System.out.println("Iteration # " + i);
         }
@@ -54,7 +56,7 @@ class Challenge {
      * @param address the IP address of the request
      */
 
-    //Complexity: O(1 + n*Log n)
+    //Complexity: O(n*Log n)
     public void requestHandled(String address) {
         //Declare an Optional for the value associated with the address provided if it exists in ipAddresses already,
         // or else store an empty optional
@@ -82,13 +84,17 @@ class Challenge {
         return top100List;
     }
 
-    //Clear method
+    //Clear method O(n)
     public void clear() {
         ipAddresses.clear();
         top100List.clear();
     }
 }
 
+/**
+ * This class implements Runnable interface
+ * It runs in a separate thread and mutates the top100 list in checkTop100()
+ */
 class Top100Handler implements Runnable {
 
     Challenge c;
